@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -22,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class MessageListener {
 

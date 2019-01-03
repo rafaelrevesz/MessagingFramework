@@ -5,10 +5,8 @@ import com.celadonsea.messagingframework.listener.MessageListener;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 
-@Component
 @RequiredArgsConstructor
 public class ListenerAnnotationProcessor implements BeanPostProcessor {
     // https://www.baeldung.com/spring-annotation-bean-pre-processor
