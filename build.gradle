@@ -13,7 +13,7 @@ apply plugin: "jacoco"
 apply plugin: "maven"
 
 group = 'com.celadonsea.messagingframework'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.6-SNAPSHOT'
 sourceCompatibility = 1.8
 
 repositories {

@@ -2,6 +2,7 @@ package com.celadonsea.messagingframework.scanner;
 
 import com.celadonsea.messagingframework.annotation.Listener;
 import com.celadonsea.messagingframework.annotation.MessagingController;
+import com.celadonsea.messagingframework.client.MessageClient;
 import com.celadonsea.messagingframework.listener.MessageListener;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -14,6 +15,8 @@ public class ListenerMethodCallback implements ReflectionUtils.MethodCallback {
 
     private final Object bean;
 
+    private final MessageListener messageListener;
+
     private final ConfigurableListableBeanFactory configurableBeanFactory;
 
     @Override
@@ -22,7 +25,7 @@ public class ListenerMethodCallback implements ReflectionUtils.MethodCallback {
             return;
         }
         MessagingController annotation = bean.getClass().getAnnotation(MessagingController.class);
-        MessageListener listener = (MessageListener)configurableBeanFactory.getBean(annotation.client());
-        listener.processListener(bean, method, method.getAnnotation(Listener.class), annotation.topic());
+        MessageClient client = (MessageClient)configurableBeanFactory.getBean(annotation.client());
+        messageListener.processListener(bean, client, method, method.getAnnotation(Listener.class), annotation.topic());
     }
 }

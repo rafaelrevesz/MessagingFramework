@@ -7,10 +7,6 @@ import java.lang.reflect.Method;
 
 public class ControllerScanner {
 
-    public void scan() {
-
-    }
-
     private void processController(Class controllerClass) {
         MessagingController annotation = (MessagingController)controllerClass.getAnnotation(MessagingController.class);
         String baseTopic = annotation.topic();

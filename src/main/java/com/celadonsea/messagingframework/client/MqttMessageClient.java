@@ -1,7 +1,6 @@
 package com.celadonsea.messagingframework.client;
 
 import com.celadonsea.messagingframework.config.MessageClientConfig;
-import com.celadonsea.messagingframework.core.ConnectionException;
 import com.celadonsea.messagingframework.listener.CallBack;
 import com.celadonsea.messagingframework.security.CertificateLoader;
 import com.celadonsea.messagingframework.security.CredentialStore;
@@ -13,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 import java.util.function.BiConsumer;
@@ -39,6 +39,7 @@ public class MqttMessageClient implements MessageClient {
     @Override
     public void connect() {
         callBack = new CallBack(this);
+        reconnect(callBack);
     }
 
     public void reconnect(CallBack callBack) {
@@ -75,12 +76,24 @@ public class MqttMessageClient implements MessageClient {
 
     @Override
     public void publish(String topic, String message) {
-
+        try {
+            MqttMessage mqttMessage = new MqttMessage(message.getBytes());
+            mqttMessage.setQos(messageClientConfig.getQos());
+            mqttClient.publish(topic, mqttMessage);
+        } catch (MqttException e) {
+            log.error("Cannot publish message", e);
+        }
     }
 
     @Override
     public void subscribe(String topic, BiConsumer<String, byte[]> messageConsumer) {
-
+        try {
+            mqttClient.subscribe(topic);
+            callBack.subscribe(topic, messageConsumer);
+            log.info("Subscribed to {}", topic);
+        } catch (MqttException e) {
+            log.error("Cannot subscribe topic {}", topic, e);
+        }
     }
 
     @Override

@@ -2,14 +2,15 @@ package com.celadonsea.messagingframework.listener;
 
 import com.celadonsea.messagingframework.annotation.Listener;
 import com.celadonsea.messagingframework.annotation.MessageBody;
-import com.celadonsea.messagingframework.annotation.MessagingController;
 import com.celadonsea.messagingframework.annotation.TopicParameter;
+import com.celadonsea.messagingframework.client.MessageClient;
 import com.celadonsea.messagingframework.message.MessageContext;
 import com.celadonsea.messagingframework.topic.TopicParser;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -19,37 +20,15 @@ import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
 
 @Slf4j
+@Component
 @RequiredArgsConstructor
 public class MessageListener {
 
-    private final CallBack callBack;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
-    private final ObjectMapper objectMapper;
-
-    public void register(Object handler) {
-
-        for (Annotation annotation : handler.getClass().getAnnotations()) {
-            if (annotation.annotationType() == MessagingController.class) {
-                processController(handler, (MessagingController) annotation);
-            }
-        }
-    }
-
-    private void processController(Object handler, MessagingController annotation) {
-        String baseTopic = annotation.topic();
-        for (Method method : handler.getClass().getMethods()) {
-            for (Annotation methodAnnotation : method.getAnnotations()) {
-                if (methodAnnotation.annotationType() == Listener.class) {
-                    processListener(handler, method, (Listener) methodAnnotation, baseTopic);
-                }
-            }
-        }
-    }
-
-    public void processListener(Object handler, Method method, Listener methodAnnotation, String baseTopic) {
+    public void processListener(Object handler, MessageClient client, Method method, Listener methodAnnotation, String baseTopic) {
         String subTopic = methodAnnotation.value();
         List<ParameterDescriptor> parameters = new ArrayList<>();
         for (Parameter parameter : method.getParameters()) {
@@ -72,24 +51,24 @@ public class MessageListener {
                             parameter.getType() == short.class ||
                             parameter.getType() == Byte.class ||
                             parameter.getType() == byte.class) {
-                            parameters.add(new ParameterDescriptor(ParameterDescriptor.BODY, parameter.getType()));
+                            parameters.add(new ParameterDescriptor(ParameterDescriptor.PARAMETER_NAME_BODY, parameter.getType()));
                         } else {
-                            parameters.add(new ParameterDescriptor(ParameterDescriptor.BODY, parameter.getParameterizedType()));
+                            parameters.add(new ParameterDescriptor(ParameterDescriptor.PARAMETER_NAME_BODY, parameter.getParameterizedType()));
                         }
                         break;
                     }
                 }
             } else if (parameter.getType() == MessageContext.class) {
                 // parameter without annotation can only be the context
-                parameters.add(ParameterDescriptor.CONTEXT());
+                parameters.add(ParameterDescriptor.context());
             } else {
                 // otherwise the parameter is null
-                parameters.add(ParameterDescriptor.EMPTY());
+                parameters.add(ParameterDescriptor.empty());
             }
         }
         String topicDefinition = baseTopic + "/" + subTopic;
         String subscribedTopic = TopicParser.changeSubscriptionFormatForMessageBrokers(topicDefinition, "+");
-        subscribe(subscribedTopic, (topic, message) -> subscriptionLambda(handler, method, parameters, topicDefinition, topic, message));
+        client.subscribe(subscribedTopic, (topic, message) -> subscriptionLambda(handler, method, parameters, topicDefinition, topic, message));
     }
 
     private void subscriptionLambda(Object handler,
@@ -150,13 +129,7 @@ public class MessageListener {
             // https://stackoverflow.com/questions/16207283/how-to-pass-multiple-parameters-to-a-method-in-java-reflections/16254447
             method.invoke(handler, parameters);
         } catch (IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
+            log.error("Cannot call listener method for topic {}", subscribedTopic, e);
         }
     }
-
-    private void subscribe(String topic, BiConsumer<String, byte[]> consumer) {
-        callBack.subscribe(topic, consumer);
-        // client subscribe
-    }
-
 }

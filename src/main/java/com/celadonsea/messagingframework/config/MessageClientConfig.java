@@ -14,5 +14,7 @@ public interface MessageClientConfig {
 
     int getKeepAliveInterval();
 
+    int getQos();
+
     boolean isConnectionSecured();
 }

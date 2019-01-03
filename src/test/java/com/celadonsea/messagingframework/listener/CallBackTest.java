@@ -1,25 +1,56 @@
-package com.celadonsea.messagingframework.client;
+package com.celadonsea.messagingframework.listener;
 
 import com.celadonsea.messagingframework.TestMessagingController;
-import com.celadonsea.messagingframework.listener.CallBack;
-import com.celadonsea.messagingframework.listener.MessageListener;
+import com.celadonsea.messagingframework.annotation.Listener;
+import com.celadonsea.messagingframework.annotation.MessagingController;
+import com.celadonsea.messagingframework.client.MessageClient;
+import com.celadonsea.messagingframework.client.TestMessageClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+
 public class CallBackTest {
 
     private CallBack callBack;
 
+    private MessageClient messageClient;
+
     private TestMessagingController testMessagingController;
+
+    private MessageListener messageListener;
 
     @Before
     public void setup() {
-        callBack = new CallBack();
+        messageClient = new TestMessageClient();
+        callBack = new CallBack(messageClient);
+        messageClient.reconnect(callBack);
         testMessagingController = new TestMessagingController();
-        MessageListener messageListener = new MessageListener(callBack, new ObjectMapper());
-        messageListener.register(testMessagingController);
+        messageListener = new MessageListener();
+        register(testMessagingController);
+    }
+
+    private void register(Object handler) {
+
+        for (Annotation annotation : handler.getClass().getAnnotations()) {
+            if (annotation.annotationType() == MessagingController.class) {
+                processController(handler, (MessagingController) annotation);
+            }
+        }
+    }
+
+    private void processController(Object handler, MessagingController annotation) {
+        String baseTopic = annotation.topic();
+        for (Method method : handler.getClass().getMethods()) {
+            for (Annotation methodAnnotation : method.getAnnotations()) {
+                if (methodAnnotation.annotationType() == Listener.class) {
+                    messageListener.processListener(handler, messageClient, method, (Listener) methodAnnotation, baseTopic);
+                }
+            }
+        }
     }
 
     @Test

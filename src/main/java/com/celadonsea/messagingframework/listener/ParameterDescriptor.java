@@ -8,11 +8,11 @@ import java.lang.reflect.Type;
 @Getter
 public class ParameterDescriptor {
 
-    public static final String BODY = "PARAMETER_NAME_BODY";
+    public static final String PARAMETER_NAME_BODY = "PARAMETER_NAME_BODY";
 
-    public static final String CONTEXT = "PARAMETER_NAME_CONTEXT";
+    public static final String PARAMETER_NAME_CONTEXT = "PARAMETER_NAME_CONTEXT";
 
-    public static final String EMPTY = "PARAMETER_NAME_EMPTY";
+    public static final String PARAMETER_NAME_EMPTY = "PARAMETER_NAME_EMPTY";
 
     private String name;
 
@@ -30,23 +30,23 @@ public class ParameterDescriptor {
         this.type = type;
     }
 
-    public static ParameterDescriptor EMPTY() {
-        return new ParameterDescriptor(EMPTY, null);
+    public static ParameterDescriptor empty() {
+        return new ParameterDescriptor(PARAMETER_NAME_EMPTY, null);
     }
 
-    public static ParameterDescriptor CONTEXT() {
-        return new ParameterDescriptor(CONTEXT, MessageContext.class);
+    public static ParameterDescriptor context() {
+        return new ParameterDescriptor(PARAMETER_NAME_CONTEXT, MessageContext.class);
     }
 
     public boolean isEmpty() {
-        return name == null || name.equals(EMPTY);
+        return name == null || name.equals(PARAMETER_NAME_EMPTY);
     }
 
     public boolean isContext() {
-        return name != null && name.equals(CONTEXT);
+        return name != null && name.equals(PARAMETER_NAME_CONTEXT);
     }
 
     public boolean isBody() {
-        return name != null && name.equals(BODY);
+        return name != null && name.equals(PARAMETER_NAME_BODY);
     }
 }
