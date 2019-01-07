@@ -5,7 +5,8 @@ import com.celadonsea.messagingframework.annotation.Listener;
 import com.celadonsea.messagingframework.annotation.MessagingController;
 import com.celadonsea.messagingframework.client.MessageClient;
 import com.celadonsea.messagingframework.client.TestMessageClient;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.celadonsea.messagingframework.config.MessageClientConfig;
+import com.celadonsea.messagingframework.scanner.MessageCallbackPreProcessor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,16 +22,61 @@ public class CallBackTest {
 
     private TestMessagingController testMessagingController;
 
-    private MessageListener messageListener;
+    private MessageCallbackPreProcessor messageCallbackPreProcessor;
 
     @Before
     public void setup() {
-        messageClient = new TestMessageClient();
+        MessageClientConfig config = getConfig();
+        messageClient = new TestMessageClient(config);
         callBack = new CallBack(messageClient);
         messageClient.reconnect(callBack);
         testMessagingController = new TestMessagingController();
-        messageListener = new MessageListener();
+        messageCallbackPreProcessor = new MessageCallbackPreProcessor();
         register(testMessagingController);
+    }
+
+    private MessageClientConfig getConfig() {
+        return new MessageClientConfig() {
+            @Override
+            public String getClientType() {
+                return "mqtt";
+            }
+
+            @Override
+            public String getClientId() {
+                return "unitTest";
+            }
+
+            @Override
+            public String getBrokerUrl() {
+                return "memory";
+            }
+
+            @Override
+            public int getMaxInFlight() {
+                return 0;
+            }
+
+            @Override
+            public int getConnectionTimeout() {
+                return 0;
+            }
+
+            @Override
+            public int getKeepAliveInterval() {
+                return 0;
+            }
+
+            @Override
+            public int getQos() {
+                return 0;
+            }
+
+            @Override
+            public boolean isConnectionSecured() {
+                return false;
+            }
+        };
     }
 
     private void register(Object handler) {
@@ -47,7 +93,7 @@ public class CallBackTest {
         for (Method method : handler.getClass().getMethods()) {
             for (Annotation methodAnnotation : method.getAnnotations()) {
                 if (methodAnnotation.annotationType() == Listener.class) {
-                    messageListener.processListener(handler, messageClient, method, (Listener) methodAnnotation, baseTopic);
+                    messageCallbackPreProcessor.processListenerMethod(handler, messageClient, method, (Listener) methodAnnotation, baseTopic);
                 }
             }
         }
@@ -117,6 +163,16 @@ public class CallBackTest {
             content.getBytes());
 
         Assert.assertEquals(content, testMessagingController.getIncomingMessage());
+    }
+
+    @Test
+    public void shouldNotReceiveByteMessageIfNumberTooBig() {
+        String content = String.valueOf(Integer.MAX_VALUE);
+        callBack.messageArrived(
+            "valami/topicvariable1c/valami3/topic7",
+            content.getBytes());
+
+        Assert.assertEquals("0", testMessagingController.getIncomingMessage());
     }
 
     @Test

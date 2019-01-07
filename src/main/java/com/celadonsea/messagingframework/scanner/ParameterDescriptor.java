@@ -1,4 +1,4 @@
-package com.celadonsea.messagingframework.listener;
+package com.celadonsea.messagingframework.scanner;
 
 import com.celadonsea.messagingframework.message.MessageContext;
 import lombok.Getter;

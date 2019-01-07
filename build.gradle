@@ -13,7 +13,7 @@ apply plugin: "jacoco"
 apply plugin: "maven"
 
 group = 'com.celadonsea.messagingframework'
-version = '0.0.12-SNAPSHOT'
+version = '0.0.18-SNAPSHOT'
 sourceCompatibility = 1.8
 
 repositories {
@@ -21,6 +21,8 @@ repositories {
 }
 
 dependencies {
+    def noLogging = {exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'}
+
     compile('commons-lang:commons-lang:2.6')
     compile('org.springframework:spring-core:5.1.3.RELEASE')
     compile('org.springframework:spring-context:5.1.3.RELEASE')
@@ -30,6 +32,8 @@ dependencies {
     compile('org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0')
     compile('com.rabbitmq:amqp-client:5.5.0')
 
+    compile('com.squareup:javapoet:1.9.0')
+
     compileOnly ('ch.qos.logback:logback-classic:1.1.11')
     compileOnly('org.projectlombok:lombok:1.16.20')
 
@@ -37,4 +41,6 @@ dependencies {
     testCompile('junit:junit:4.12')
     testCompile('org.mockito:mockito-all:1.10.19')
     testCompile('org.slf4j:slf4j-simple:1.6.1')
+    testCompile('org.springframework.boot:spring-boot-starter-test:2.0.4.RELEASE', noLogging)
+    testCompile('org.springframework:spring-web:5.1.3.RELEASE')
 }

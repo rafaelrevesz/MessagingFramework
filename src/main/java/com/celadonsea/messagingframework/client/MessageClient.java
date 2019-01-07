@@ -11,10 +11,13 @@ public interface MessageClient {
 
     void reconnect(CallBack callBack);
 
-    void publish(String topic, String message);
+    void publish(String topic, byte[] message);
+
+    void publish(String topic, byte[] message, int qos);
 
     void subscribe(String topic, BiConsumer<String, byte[]> messageConsumer);
 
     TopicFormat topicFormat();
 
+    MessagePublisher publisher();
 }

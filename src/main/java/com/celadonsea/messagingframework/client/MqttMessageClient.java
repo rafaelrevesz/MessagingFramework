@@ -49,11 +49,28 @@ public class MqttMessageClient implements MessageClient {
                 messageClientConfig.getClientId(),
                 new MemoryPersistence());
 
+            ((org.eclipse.paho.client.mqttv3.MqttClient)mqttClient).setTimeToWait(messageClientConfig.getConnectionTimeout());
             log.info("Connecting to broker (URL: {})", messageClientConfig.getBrokerUrl());
             mqttClient.connect(getMqttConnectOptions());
             mqttClient.setCallback(callBack);
         } catch (MqttException e) {
             log.error("Cannot connect to message broker {}", messageClientConfig.getBrokerUrl(), e);
+        }
+    }
+
+    @Override
+    public void publish(String topic, byte[] message) {
+        publish(topic, message, messageClientConfig.getQos());
+    }
+
+    @Override
+    public void publish(String topic, byte[] message, int qos) {
+        try {
+            MqttMessage mqttMessage = new MqttMessage(message);
+            mqttMessage.setQos(qos);
+            mqttClient.publish(topic, mqttMessage);
+        } catch (MqttException e) {
+            log.error("Cannot publish message", e);
         }
     }
 
@@ -75,17 +92,6 @@ public class MqttMessageClient implements MessageClient {
     }
 
     @Override
-    public void publish(String topic, String message) {
-        try {
-            MqttMessage mqttMessage = new MqttMessage(message.getBytes());
-            mqttMessage.setQos(messageClientConfig.getQos());
-            mqttClient.publish(topic, mqttMessage);
-        } catch (MqttException e) {
-            log.error("Cannot publish message", e);
-        }
-    }
-
-    @Override
     public void subscribe(String topic, BiConsumer<String, byte[]> messageConsumer) {
         try {
             mqttClient.subscribe(topic);
@@ -99,5 +105,10 @@ public class MqttMessageClient implements MessageClient {
     @Override
     public TopicFormat topicFormat() {
         return topicFormat;
+    }
+
+    @Override
+    public MessagePublisher publisher() {
+        return new MessagePublisher(this);
     }
 }
