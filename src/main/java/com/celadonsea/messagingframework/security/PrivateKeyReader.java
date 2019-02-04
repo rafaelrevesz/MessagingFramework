@@ -18,8 +18,9 @@ package com.celadonsea.messagingframework.security;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
+ * @see http://oauth.googlecode.com/svn/code/branches/jmeter/jmeter/src/main/java/org/apache/jmeter/protocol/oauth/sampler/PrivateKeyReader.java
+ *
  ****************************************************************************/
-// http://oauth.googlecode.com/svn/code/branches/jmeter/jmeter/src/main/java/org/apache/jmeter/protocol/oauth/sampler/PrivateKeyReader.java
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.BufferedReader;

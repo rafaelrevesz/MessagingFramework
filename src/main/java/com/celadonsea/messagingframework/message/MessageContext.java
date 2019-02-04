@@ -1,20 +1,35 @@
 package com.celadonsea.messagingframework.message;
 
+import com.celadonsea.messagingframework.topic.TopicFormat;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 
-import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Represents the whole message context in case of incoming messages.
+ *
+ * @author Rafael Revesz
+ * @since 1.0
+ */
 @Getter
-@Setter
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class MessageContext {
 
-    private String topic;
+    /**
+     * Contains the topic which the incoming message arrived to
+     */
+    private final String topic;
 
-    private String subscribedTopic;
+    /**
+     * Contains the topic which the message controller subscribed to
+     */
+    private final String subscribedTopic;
 
-    private Map<String, String> parameterMap = new HashMap<>();
+    /**
+     * Contains all the parameters and values which can be parsed from the
+     * incoming and subscribed topic.
+     * @see com.celadonsea.messagingframework.topic.TopicParser#parseVariables(String, String, TopicFormat)
+     */
+    private final Map<String, String> parameterMap;
 }

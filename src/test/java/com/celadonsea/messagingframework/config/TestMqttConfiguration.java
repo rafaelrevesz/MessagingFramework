@@ -1,4 +1,4 @@
-package com.celadonsea.messagingframework;
+package com.celadonsea.messagingframework.config;
 
 import com.celadonsea.messagingframework.client.MessageClient;
 import com.celadonsea.messagingframework.client.TestMessageClient;
@@ -9,11 +9,11 @@ import org.springframework.context.annotation.Configuration;
 
 @Getter
 @Configuration
-public class MessagingConfiguration implements MessageClientConfig {
+public class TestMqttConfiguration implements MessageClientConfig {
 
     private String clientType= "mqtt";
 
-    private String clientId = "testClient";
+    private String clientId = "testMqttClient";
 
     private String brokerUrl = "memory";
 
@@ -26,6 +26,10 @@ public class MessagingConfiguration implements MessageClientConfig {
     private int qos = 0;
 
     private boolean connectionSecured = false;
+
+    private int maxThread = 10;
+
+    private int threadKeepAliveTime = 1;
 
     @Bean
     public MessageClient testClient() {

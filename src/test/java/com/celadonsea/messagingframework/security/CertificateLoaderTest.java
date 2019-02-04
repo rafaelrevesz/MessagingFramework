@@ -1,11 +1,10 @@
 package com.celadonsea.messagingframework.security;
 
-import com.celadonsea.messagingframework.core.ConnectionException;
 import org.junit.Test;
 
 public class CertificateLoaderTest {
 
-	@Test(expected = ConnectionException.class)
+	@Test(expected = SecurityException.class)
 	public void shouldNotLoadInvalidCertificateFile() {
 		CertificateLoader.getKeyStorePasswordPair("anyCert", "anyKey");
 	}

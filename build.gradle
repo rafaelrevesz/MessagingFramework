@@ -13,7 +13,7 @@ apply plugin: "jacoco"
 apply plugin: "maven"
 
 group = 'com.celadonsea.messagingframework'
-version = '0.0.18-SNAPSHOT'
+version = '0.0.21-SNAPSHOT'
 sourceCompatibility = 1.8
 
 repositories {
@@ -43,4 +43,5 @@ dependencies {
     testCompile('org.slf4j:slf4j-simple:1.6.1')
     testCompile('org.springframework.boot:spring-boot-starter-test:2.0.4.RELEASE', noLogging)
     testCompile('org.springframework:spring-web:5.1.3.RELEASE')
+    testCompile('org.awaitility:awaitility:3.1.5')
 }

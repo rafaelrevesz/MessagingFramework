@@ -1,8 +1,11 @@
 package com.celadonsea.messagingframework.client;
 
 import com.celadonsea.messagingframework.config.MessageClientConfig;
+import com.celadonsea.messagingframework.core.ConsumingProperties;
+import com.celadonsea.messagingframework.core.ProducingProperties;
 import com.celadonsea.messagingframework.listener.CallBack;
 import com.celadonsea.messagingframework.topic.TopicFormat;
+import com.celadonsea.messagingframework.topic.TopicTransformer;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -11,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 @Slf4j
 public class TestMessageClient implements MessageClient {
@@ -22,6 +26,8 @@ public class TestMessageClient implements MessageClient {
 
     private MessageClientConfig messageClientConfig;
 
+    private TopicFormat topicFormat = new TopicFormat('/', '+', '#');
+
     public TestMessageClient(MessageClientConfig messageClientConfig) {
         this.messageClientConfig = messageClientConfig;
     }
@@ -32,7 +38,7 @@ public class TestMessageClient implements MessageClient {
     @Override
     public void connect() {
         log.info("Connectig to {}", messageClientConfig.getBrokerUrl());
-        callBack = new CallBack(this);
+        callBack = new CallBack(this, messageClientConfig);
     }
 
     @Override
@@ -41,17 +47,25 @@ public class TestMessageClient implements MessageClient {
     }
 
     @Override
-    public void publish(String topic, byte[] message) {
-        publish(topic, message, DEFAULT_QOS);
-    }
+    public void publish(byte[] message, ProducingProperties producingProperties) {
+        int qos = producingProperties.getQos() == ProducingProperties.DEFAULT_UNSET_QOS ? DEFAULT_QOS : producingProperties.getQos();
 
-    @Override
-    public void publish(String topic, byte[] message, int qos) {
-        String key = getMessageKey(topic, qos);
+        String key = getMessageKey(producingProperties.getTopic(), qos);
         if (!publishedMessages.containsKey(key)) {
             publishedMessages.put(key, new ArrayList<>());
         }
         publishedMessages.get(key).add(message);
+    }
+
+    @Override
+    public void subscribe(ConsumingProperties consumingProperties, BiConsumer<String, byte[]> messageConsumer) {
+        callBack.subscribe(consumingProperties.getTopic(), topicTransformer().apply(consumingProperties.getTopic()), messageConsumer);
+        log.info("Subscribed to exchange {} and topic {}", consumingProperties.getExchange(), consumingProperties.getTopic());
+    }
+
+    @Override
+    public void setTopicFormat(TopicFormat topicFormat) {
+        this.topicFormat = topicFormat;
     }
 
     public String getMessageKey(String topic, int qos) {
@@ -59,18 +73,17 @@ public class TestMessageClient implements MessageClient {
     }
 
     @Override
-    public void subscribe(String topic, BiConsumer<String, byte[]> messageConsumer) {
-        callBack.subscribe(topic, messageConsumer);
-        log.info("Subscribed to {}", topic);
-    }
-
-    @Override
-    public TopicFormat topicFormat() {
-        return new TopicFormat('/', '+', '#');
+    public TopicFormat getTopicFormat() {
+        return topicFormat;
     }
 
     @Override
     public MessagePublisher publisher() {
         return new MessagePublisher(this);
+    }
+
+    @Override
+    public Function<String, String> topicTransformer() {
+        return originalTopic -> TopicTransformer.transform(originalTopic).ifShared().andReturn();
     }
 }
